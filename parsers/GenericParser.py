@@ -10,6 +10,9 @@ class GenericParser:
         self.range_end = None
         self.database = None
 
+    def configure_output(self, output_dir):
+        self.output_dir = output_dir
+
     def configure_range(self, range_start, range_end):
         self.range_start = self.parsed_date(range_start)
         self.range_end = self.parsed_date(range_end)

@@ -76,8 +76,8 @@ class CSVToSQLite:
 
 if __name__ == '__main__':
     print('running csv to db')
-    csv_file = 'E:\\davi_locations.csv'
-    db_file = 'E:\\davi_locations.db'
+    csv_file = 'D:\\LGMotorola_consolidado.csv'
+    db_file = 'D:\\LGMotorola_consolidado.db'
     converter = CSVToSQLite()
     converter.init(csv_file, db_file)
     converter.create_db()

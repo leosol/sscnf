@@ -78,12 +78,8 @@ class CSVToSQLite:
 
 if __name__ == '__main__':
     print('running csv to db')
-    #csv_file = 'E:\\davi_locations.csv'
-    #db_file = 'E:\\davi_locations.db'
-    #csv_file = 'D:\\Usuarios\\root\\git\\sscnf\\input\\vt-to-database\\vt_perms_summary.csv'
-    csv_file = 'D:\\Usuarios\\root\\git\\sscnf\\input\\vt-to-database\\vt_summary.csv'
-    #db_file =  'D:\\Usuarios\\root\\git\\sscnf\\input\\vt-to-database\\vt_perms_summary.db'
-    db_file = 'D:\\Usuarios\\root\\git\\sscnf\\input\\vt-to-database\\vt_summary.db'
+    csv_file = 'D:\\LGMotorola_consolidado.csv'
+    db_file = 'D:\\LGMotorola_consolidado.db'
     converter = CSVToSQLite()
     converter.init(csv_file, db_file)
     converter.create_db()

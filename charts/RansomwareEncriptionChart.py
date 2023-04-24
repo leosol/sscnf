@@ -32,7 +32,7 @@ class RansomwareEncriptionChart:
                         max(min(cdate), min(mdate), min(adate)) as dt_ini, 
                         min(max(cdate), max(mdate), max(adate)) as dt_end,
                         count(*)
-                    from iped_br_file_listing_csv
+                    from iped_br_file_listing
                     where lower(name) like '%."""+ext_str+"""' or upper(hash) in (\""""+hashes_str+"""\")
                     group by evidence
                     order by 2 desc"""
@@ -138,9 +138,9 @@ class RansomwareEncriptionChart:
 
 
 if __name__ == '__main__':
-    iped_files_db = '..\\input\\produced\\iped_br_file_listing.db'
+    iped_files_db = '..\\output\\iped\\csv_to_db_iped_br_file_listing.db'
     chart = RansomwareEncriptionChart()
-    chart.init(["B311256C0B964724258078AFFCE39F01-asdfasdfasdf"], "play", iped_files_db)
+    chart.init(["5F790E915D79345B6E0DEAC1C1C307CF"], "Q2L56oERhJ", iped_files_db)
     chart.plot_chart()
     #chart.plot_data_chart()
     val = input("Enter your value: ")

@@ -6,6 +6,9 @@ import time
 from parsers import GenericParser
 import os
 from pprint import pprint
+import traceback
+import time
+import sys
 
 
 
@@ -42,10 +45,18 @@ class VTUploader(GenericParser.GenericParser):
                 file_name = basename
                 self.expected_writer.writerow([file_name])
                 file_md5 = hashlib.md5(open(filepath, 'rb').read()).hexdigest()
-                if (os.path.getsize(filepath)) > 30*1024*1024:
+                if (os.path.getsize(filepath)) < 30*1024*1024:
                     files = {"file": (os.path.basename(filepath), open(os.path.abspath(filepath), "rb"))}
-                    resp = vtotal.request("files", files=files, method="POST")
-                    resp = vtotal.request(f"files/{file_md5}")
+                    try:
+                        resp = vtotal.request("files", files=files, method="POST")
+                    except Exception as e:
+                        print(sys.exc_info()[2])
+                        print(traceback.format_exc())
+                    try:
+                        resp = vtotal.request(f"files/{file_md5}")
+                    except Exception as e:
+                        print(sys.exc_info()[2])
+                        print(traceback.format_exc())
                 else:
                     large_file = {
                         "file": (
@@ -53,15 +64,27 @@ class VTUploader(GenericParser.GenericParser):
                             open(filepath, "rb"),
                         )
                     }
-                    upload_url = vtotal.request("files/upload_url").data
-                    resp = vtotal.request(upload_url, files=large_file, method="POST", large_file=True)
-                    resp = vtotal.request(f"files/{file_md5}")
+                    try:
+                        upload_url = vtotal.request("files/upload_url").data
+                        resp = vtotal.request(upload_url, files=large_file, method="POST", large_file=True)
+                    except Exception as e:
+                        print(sys.exc_info()[2])
+                        print(traceback.format_exc())
+                    try:
+                        resp = vtotal.request(f"files/{file_md5}")
+                    except Exception as e:
+                        print(sys.exc_info()[2])
+                        print(traceback.format_exc())
                 #pprint(resp.data)
                 #pprint(resp.json())
                 json_resp = resp.json()
                 outfile = self.output_dir + "virustotal-" + basename + ".resp"
                 fw = open(outfile, 'w')
-                fw.write(str(resp.json()))
+                try:
+                    fw.write(str(resp.json()))
+                except Exception as e:
+                    print(sys.exc_info()[2])
+                    print(traceback.format_exc())
                 fw.close()
                 if 'data' in json_resp and 'attributes' in json_resp['data'] and 'androguard' in json_resp['data']['attributes'] and 'Package' in json_resp['data']['attributes']['androguard']:
                     package = json_resp['data']['attributes']['androguard']['Package']
@@ -85,11 +108,12 @@ class VTUploader(GenericParser.GenericParser):
                     undetected = ''
 
                 self.summary_writer.writerow([file_name, package, main_activity, malicious, suspicious, undetected])
-                for item in json_resp['data']['attributes']['androguard']['permission_details']:
-                    permission_id = item
-                    full_description = json_resp['data']['attributes']['androguard']['permission_details'][permission_id]['full_description']
-                    permission_type = json_resp['data']['attributes']['androguard']['permission_details'][permission_id]['permission_type']
-                    self.perm_summary_writer.writerow([file_name, package, permission_id, full_description, permission_type])
+                if 'data' in json_resp and 'attributes'  in json_resp['data'] and 'androguard' in json_resp['data']['attributes'] and 'permission_details' in json_resp['data']['attributes']['androguard']:
+                    for item in json_resp['data']['attributes']['androguard']['permission_details']:
+                        permission_id = item
+                        full_description = json_resp['data']['attributes']['androguard']['permission_details'][permission_id]['full_description']
+                        permission_type = json_resp['data']['attributes']['androguard']['permission_details'][permission_id]['permission_type']
+                        self.perm_summary_writer.writerow([file_name, package, permission_id, full_description, permission_type])
                 self.completed_writer.writerow([file_name])
 
 

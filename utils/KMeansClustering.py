@@ -178,7 +178,7 @@ class KMeansClustering:
 
 
 
-def vw_expected_time_vs_permissions():
+def vw_expected_time_vs_permissions():b
     connection_object = sqlite3.connect(
         "E:\\davi_locations.db")
     cursor = connection_object.cursor()

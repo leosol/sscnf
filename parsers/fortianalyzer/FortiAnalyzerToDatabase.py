@@ -19,7 +19,7 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
         self.multiple_names_same_column = {}
 
     def can_handle(self, filename):
-        if ".ftn" in filename.strip().lower():
+        if filename.strip().lower().endswith('.csv'):
             return True
         return False
 
@@ -40,7 +40,8 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
     def pre_process_file(self, filepath):
         basename = os.path.basename(filepath)
         table_name = os.path.splitext(basename)[0]
-        self.table_name = table_name.replace('-', '_')
+        table_name = os.path.splitext(table_name)[0]
+        self.table_name = table_name.replace('-', '_').replace('.','_')
         super().pre_process_file(filepath)
         self.normalize_columns_without_names()
         print("Columns in the file: " + filepath)
@@ -72,7 +73,7 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
                 by_row_column_name = None
             if current_column_name is None or len(current_column_name) < 2:
                 current_column_name = by_row_column_name
-                self.column_names[column_index] = current_column_name
+                self.column_names[column_index] = self.handle_key_words(current_column_name)
             else:
                 if by_row_column_name is not None and current_column_name is not None:
                     if by_row_column_name != current_column_name:
@@ -83,6 +84,12 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
                             self.multiple_names_same_column[column_index] = []
                             self.multiple_names_same_column[column_index].append(by_row_column_name)
             column_index = column_index + 1
+
+    def handle_key_words(self, colum_name):
+        if colum_name is not None:
+            colum_name = colum_name.replace('-', '_').replace('.','_')
+            return "clmn_"+colum_name
+        return None
 
     def process_row(self, row):
         data = []

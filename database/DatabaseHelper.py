@@ -29,6 +29,7 @@ class DatabaseHelper:
             columns_spec = columns_spec + column + ' TEXT'
             qtd_columns = qtd_columns + 1
         sql = 'create table if not exists ' + table_name + ' (internal_id INTEGER PRIMARY KEY,' + columns_spec + ')'
+        print(sql)
         self.c.execute(sql)
 
     def create_record(self, table_name, columns, data):

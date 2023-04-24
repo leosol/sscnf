@@ -26,6 +26,7 @@ class CSVToSQLite:
             first_line = f.readline()
         con = sqlite3.connect(db_file)
         cur = con.cursor()
+        first_line = first_line.replace(';',',')
         sql = "CREATE TABLE IF NOT EXISTS "+table_name+" ("+first_line+")"
         print(sql)
         cur.execute(sql)
@@ -46,7 +47,7 @@ class CSVToSQLite:
         result = subprocess.run(['sqlite3',
                                  str(db_name),
                                  '-cmd',
-                                 '.mode csv',
+                                 '.mode csv .separator ;',
                                  '.import --skip 1 ' + str(csv_file).replace('\\', '\\\\')
                                  + " "+table_name],
                                 capture_output=True)
@@ -67,6 +68,7 @@ class CSVToSQLite:
         if preconditions:
             print("Creating database " + str(db_name) + " with data from " + str(csv_file))
             basename = os.path.basename(csv_file)
+            basename = os.path.splitext(basename)[0]
             table_name = basename.replace(' ', '_').replace('.', '_')
             self.create_table(csv_file, self.db_file, table_name)
             print("Calling subprocess sqlite3 - did you install it?")
@@ -76,8 +78,12 @@ class CSVToSQLite:
 
 if __name__ == '__main__':
     print('running csv to db')
-    csv_file = 'E:\\davi_locations.csv'
-    db_file = 'E:\\davi_locations.db'
+    #csv_file = 'E:\\davi_locations.csv'
+    #db_file = 'E:\\davi_locations.db'
+    #csv_file = 'D:\\Usuarios\\root\\git\\sscnf\\input\\vt-to-database\\vt_perms_summary.csv'
+    csv_file = 'D:\\Usuarios\\root\\git\\sscnf\\input\\vt-to-database\\vt_summary.csv'
+    #db_file =  'D:\\Usuarios\\root\\git\\sscnf\\input\\vt-to-database\\vt_perms_summary.db'
+    db_file = 'D:\\Usuarios\\root\\git\\sscnf\\input\\vt-to-database\\vt_summary.db'
     converter = CSVToSQLite()
     converter.init(csv_file, db_file)
     converter.create_db()

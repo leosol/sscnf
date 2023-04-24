@@ -55,7 +55,9 @@ class GenericCSVParser(GenericParser.GenericParser):
 
     def pre_process_file(self, filepath):
         if self.pre_process_rows:
-            with open(filepath, newline='', encoding='utf-8-sig') as csv_file:
+            #encoding='latin-1'
+            #encoding='utf-8-sig'
+            with open(filepath, newline='', encoding='latin-1') as csv_file:
                 reader = csv.reader(csv_file, delimiter=self.delimiter, quotechar='"')
                 for row in reader:
                     try:
@@ -67,7 +69,11 @@ class GenericCSVParser(GenericParser.GenericParser):
     def pre_process_row(self, row):
         print("This should be overriden")
 
+    def finish_file(self, filepath):
+        print("This should be overriden")
+
     def process(self, filepath):
+        self.filepath = filepath
         self.pre_process_file(filepath)
         line_count = 0
         line_errors = 0
@@ -86,10 +92,11 @@ class GenericCSVParser(GenericParser.GenericParser):
                             return
                         self.process_row(row)
                 except Exception as e:
-                    #print(sys.exc_info()[2])
-                    #print(traceback.format_exc())
+                    print(sys.exc_info()[2])
+                    print(traceback.format_exc())
                     line_errors = line_errors+1
                 line_count = line_count + 1
             print("Processed: "+filepath)
             print("Lines: "+str(line_count))
             print("Errors: "+str(line_errors))
+        self.finish_file(filepath)

@@ -6,13 +6,11 @@ from database.CSVToSQLite import CSVToSQLite
 class CSVToSQLiteParser(GenericParser.GenericParser):
 
     def can_handle(self, filename):
-        if ".csv" in filename.strip().lower():
+        if ".csv-to-raw-db" in filename.strip().lower():
             return True
         return False
 
     def process(self, filepath):
-        if not("csvtosqlite" in filepath.strip().lower()):
-            return
         csv_file = filepath
         basename = os.path.basename(csv_file)
         basename_noext = os.path.splitext(basename)[0]

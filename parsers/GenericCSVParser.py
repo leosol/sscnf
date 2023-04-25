@@ -99,4 +99,7 @@ class GenericCSVParser(GenericParser.GenericParser):
             print("Processed: "+filepath)
             print("Lines: "+str(line_count))
             print("Errors: "+str(line_errors))
+            self.write_log_msg("Processed: "+filepath)
+            self.write_log_msg("Lines: "+str(line_count))
+            self.write_log_msg("Errors: "+str(line_errors))
         self.finish_file(filepath)

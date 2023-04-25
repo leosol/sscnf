@@ -22,9 +22,6 @@ import traceback
 import time
 import sys
 
-#rootdir = '.\\input-evtx\\'
-#https://frsecure.com/blog/rdp-connection-event-logs/
-
 def parsed_date(dstr):
     ts = None
     try:
@@ -46,6 +43,9 @@ class Director:
         self.files_to_process = 0
         self.processed_files = 0
         self.out_dir = out_dir
+        self.logf = open(self.out_dir+'\\sscnf.log', 'a')
+        self.logf.write("Begin--------------------------------------------------------------------")
+
 
     def configure_phone_parsers(self):
         iTunesOldParser = iTunesBackupOldParser()
@@ -135,9 +135,12 @@ class Director:
                             if os.stat(file_to_process).st_size == 0:
                                 continue
                             print("Processing file : " + file_to_process + " ---------------------------")
+                            self.logf.write("Director Begin File: "+file_to_process)
                             start_time = time.time()
+                            parser.logf = self.logf
                             parser.process(file_to_process)
                             print("Processing took %s seconds ---" % (time.time() - start_time))
+                            self.logf.write("Director Finish File: " + file_to_process)
                         except Exception as e:
                             print(sys.exc_info()[2])
                             print(traceback.format_exc())

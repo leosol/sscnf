@@ -70,3 +70,7 @@ class GenericParser:
             if a == item:
                 return True
         return False
+
+    def write_log_msg(self, msg):
+        if self.logf is not None:
+            self.logf.write(msg)

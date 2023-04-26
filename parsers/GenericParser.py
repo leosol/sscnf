@@ -71,6 +71,10 @@ class GenericParser:
                 return True
         return False
 
+    def set_logf(self, logf):
+        self.logf = logf
+
     def write_log_msg(self, msg):
         if self.logf is not None:
-            self.logf.write(msg)
+            self.logf.write(msg+"\n")
+            self.logf.flush()

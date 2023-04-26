@@ -45,6 +45,7 @@ class Director:
         self.out_dir = out_dir
         self.logf = open(self.out_dir+'\\sscnf.log', 'a')
         self.logf.write("Begin--------------------------------------------------------------------")
+        self.logf.flush()
 
 
     def configure_phone_parsers(self):
@@ -135,12 +136,14 @@ class Director:
                             if os.stat(file_to_process).st_size == 0:
                                 continue
                             print("Processing file : " + file_to_process + " ---------------------------")
-                            self.logf.write("Director Begin File: "+file_to_process)
+                            self.logf.write("Director Begin File: "+file_to_process+"\n")
+                            self.logf.flush()
                             start_time = time.time()
-                            parser.logf = self.logf
+                            parser.set_logf(self.logf)
                             parser.process(file_to_process)
-                            print("Processing took %s seconds ---" % (time.time() - start_time))
-                            self.logf.write("Director Finish File: " + file_to_process)
+                            print("Processing took %s seconds ---" % (time.time() - start_time)+"\n")
+                            self.logf.write("Director Finish File: " + file_to_process+"\n")
+                            self.logf.flush()
                         except Exception as e:
                             print(sys.exc_info()[2])
                             print(traceback.format_exc())

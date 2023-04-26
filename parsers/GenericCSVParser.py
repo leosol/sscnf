@@ -102,4 +102,6 @@ class GenericCSVParser(GenericParser.GenericParser):
             self.write_log_msg("Processed: "+filepath)
             self.write_log_msg("Lines: "+str(line_count))
             self.write_log_msg("Errors: "+str(line_errors))
+            if line_errors > 0:
+                self.write_log_msg("File with errors: "+filepath)
         self.finish_file(filepath)

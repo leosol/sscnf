@@ -76,13 +76,13 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
                 self.column_names[column_index] = self.handle_key_words(current_column_name)
             else:
                 if by_row_column_name is not None and current_column_name is not None:
-                    if by_row_column_name != current_column_name:
+                    if self.handle_key_words(by_row_column_name) != current_column_name:
                         if column_index in self.multiple_names_same_column:
                             if by_row_column_name not in self.multiple_names_same_column[column_index]:
-                                self.multiple_names_same_column[column_index].append(by_row_column_name)
+                                self.multiple_names_same_column[column_index].append(self.handle_key_words(by_row_column_name))
                         else:
                             self.multiple_names_same_column[column_index] = []
-                            self.multiple_names_same_column[column_index].append(by_row_column_name)
+                            self.multiple_names_same_column[column_index].append(self.handle_key_words(by_row_column_name))
             column_index = column_index + 1
 
     def handle_key_words(self, colum_name):

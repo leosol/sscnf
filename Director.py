@@ -43,8 +43,8 @@ class Director:
         self.files_to_process = 0
         self.processed_files = 0
         self.out_dir = out_dir
-        self.logf = open(self.out_dir+'\\sscnf.log', 'a')
-        self.logf.write("Begin--------------------------------------------------------------------")
+        self.logf = open(self.out_dir+'\\sscnf.log', 'w')
+        self.logf.write("Begin--------------------------------------------------------------------\n")
         self.logf.flush()
 
 
@@ -115,7 +115,7 @@ class Director:
                         try:
                             if os.stat(to_be_processed).st_size == 0:
                                 continue
-                            print("Parser can handle file : " + to_be_processed)
+                            print("Parser "+str(type(parser))+" can handle file : " + to_be_processed)
                             self.files_to_process = self.files_to_process+1
                         except Exception as e:
                             print(sys.exc_info()[2])
@@ -135,7 +135,7 @@ class Director:
                         try:
                             if os.stat(file_to_process).st_size == 0:
                                 continue
-                            print("Processing file : " + file_to_process + " ---------------------------")
+                            print("Parser "+str(type(parser))+" will be Processing file : " + file_to_process + " ---------------------------")
                             self.logf.write("Director Begin File: "+file_to_process+"\n")
                             self.logf.flush()
                             start_time = time.time()

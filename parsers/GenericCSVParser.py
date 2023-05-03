@@ -57,7 +57,7 @@ class GenericCSVParser(GenericParser.GenericParser):
         if self.pre_process_rows:
             #encoding='latin-1'
             #encoding='utf-8-sig'
-            with open(filepath, newline='', encoding='latin-1') as csv_file:
+            with open(filepath, newline='', encoding='utf-8-sig') as csv_file:
                 reader = csv.reader(csv_file, delimiter=self.delimiter, quotechar='"')
                 for row in reader:
                     try:
@@ -77,31 +77,36 @@ class GenericCSVParser(GenericParser.GenericParser):
         self.pre_process_file(filepath)
         line_count = 0
         line_errors = 0
-        with open(filepath, newline='', encoding='utf-8-sig') as csv_file:
-            reader = csv.reader(csv_file, delimiter=self.delimiter, quotechar='"')
-            for row in reader:
-                try:
-                    if line_count == 0 and not self.skip_header_check:
-                        if self.array_equal(self.get_expected_first_line(), row):
-                            print("CSV has expected structure")
+        self.write_log_msg("START CSV: " + filepath)
+        try:
+            with open(filepath, newline='', encoding='utf-8-sig') as csv_file:
+                reader = csv.reader(csv_file, delimiter=self.delimiter, quotechar='"')
+                for row in reader:
+                    try:
+                        if line_count == 0 and not self.skip_header_check:
+                            if self.array_equal(self.get_expected_first_line(), row):
+                                print("CSV has expected structure")
+                            else:
+                                print("CSV does not have the expected structure")
+                                return
                         else:
-                            print("CSV does not have the expected structure")
-                            return
-                    else:
-                        if self.do_only_header_check or self.skip_body:
-                            return
-                        self.process_row(row)
-                except Exception as e:
-                    print(sys.exc_info()[2])
-                    print(traceback.format_exc())
-                    line_errors = line_errors+1
-                line_count = line_count + 1
-            print("Processed: "+filepath)
-            print("Lines: "+str(line_count))
-            print("Errors: "+str(line_errors))
-            self.write_log_msg("Processed: "+filepath)
-            self.write_log_msg("Lines: "+str(line_count))
-            self.write_log_msg("Errors: "+str(line_errors))
-            if line_errors > 0:
-                self.write_log_msg("File with errors: "+filepath)
+                            if self.do_only_header_check or self.skip_body:
+                                return
+                            self.process_row(row)
+                    except Exception as e:
+                        print(sys.exc_info()[2])
+                        print(traceback.format_exc())
+                        line_errors = line_errors+1
+                    line_count = line_count + 1
+                print("Processed: "+filepath)
+                print("Lines: "+str(line_count))
+                print("Errors: "+str(line_errors))
+                self.write_log_msg("Processed: "+filepath)
+                self.write_log_msg("Lines: "+str(line_count))
+                self.write_log_msg("Errors: "+str(line_errors))
+                if line_errors > 0 or line_count == 0:
+                    self.write_log_msg("File with errors: "+filepath)
+        except Exception as e:
+            self.write_log_msg("File with errors: " + filepath)
+        self.write_log_msg("FINISH CSV: " + filepath)
         self.finish_file(filepath)

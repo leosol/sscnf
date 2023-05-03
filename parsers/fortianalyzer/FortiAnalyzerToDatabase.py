@@ -10,6 +10,7 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
         self.db.init(dbname, dbpath)
         self.skip_header_check = True
         self.pre_process_rows = True
+        self.use_unique_names = True
         self.skip_body = False
         self.delimiter = ','
         self.column_names = {}
@@ -17,6 +18,7 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
         self.lost_columns = []
         self.missed_columns = []
         self.multiple_names_same_column = {}
+        self.unique_column_names = []
 
     def can_handle(self, filename):
         if filename.strip().lower().endswith('.csv'):
@@ -52,12 +54,27 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
             print("Columns not present in the database, but in the file: "+str(self.missed_columns))
         print("Multiple column names for the same column: ")
         print(self.multiple_names_same_column)
-        self.db.create_table(self.table_name, self.column_names)
+        print("Unique Column names: ")
+        print(self.unique_column_names)
+        if self.use_unique_names:
+            self.db.create_table(self.table_name, self.unique_column_names)
+        else:
+            self.db.create_table(self.table_name, self.column_names.values())
+
 
     def normalize_columns_without_names(self):
         for i in range(0, len(self.column_names)):
             if self.column_names[i] is None:
                 self.column_names[i] = 'Missing_'+str(i)
+        for i in range(0, len(self.column_names)):
+            if self.column_names[i] is not None:
+                if self.column_names[i] not in self.unique_column_names:
+                    self.unique_column_names.append(self.column_names[i])
+        for item in self.multiple_names_same_column:
+            multiple_names_for_item = self.multiple_names_same_column[item]
+            for i in range(0, len(multiple_names_for_item)):
+                if multiple_names_for_item[i] not in self.unique_column_names:
+                    self.unique_column_names.append(multiple_names_for_item[i])
 
     def pre_process_row(self, row):
         column_index = 0
@@ -78,7 +95,7 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
                 if by_row_column_name is not None and current_column_name is not None:
                     if self.handle_key_words(by_row_column_name) != current_column_name:
                         if column_index in self.multiple_names_same_column:
-                            if by_row_column_name not in self.multiple_names_same_column[column_index]:
+                            if self.handle_key_words(by_row_column_name) not in self.multiple_names_same_column[column_index]:
                                 self.multiple_names_same_column[column_index].append(self.handle_key_words(by_row_column_name))
                         else:
                             self.multiple_names_same_column[column_index] = []
@@ -92,14 +109,23 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
         return None
 
     def process_row(self, row):
+        data_with_empty = []
         data = []
+        columns = []
         for column in row:
             if '=' in column:
                 value = column.split('=')[1]
+                column = self.handle_key_words(column.split('=')[0])
+                if column in self.unique_column_names:
+                    data.append(value)
+                    columns.append(column)
             else:
                 value = column
-            data.append(value)
-        self.db.create_record(self.table_name, self.column_names.values(), data)
+            data_with_empty.append(value)
+        if self.use_unique_names:
+            self.db.create_record(self.table_name, columns, data)
+        else:
+            self.db.create_record(self.table_name, self.column_names.values(), data_with_empty)
 
     def process(self, filepath):
         self.column_names = {}

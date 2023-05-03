@@ -23,7 +23,7 @@ class DatabaseHelper:
     def create_table(self, table_name, columns):
         columns_spec = ''
         qtd_columns = 0
-        for column in columns.values():
+        for column in columns:
             if qtd_columns > 0:
                 columns_spec = columns_spec + ', '
             columns_spec = columns_spec + column + ' TEXT'

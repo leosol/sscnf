@@ -60,7 +60,8 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
         print(self.multiple_names_same_column)
         print("Unique Column names: ")
         print(self.unique_column_names)
-        self.alternative_out_csv = CSVDatabase("fortianalyzer-csv", self.output_dir)
+        self.alternative_out_csv = CSVDatabase()
+        self.alternative_out_csv.init("fortianalyzer-csv", self.output_dir)
         if self.use_unique_names:
             self.db.create_table(self.table_name, self.unique_column_names)
             self.alternative_out_csv.create_csv(self.unique_column_names)

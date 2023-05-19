@@ -15,6 +15,8 @@ class GenericCSVParser(GenericParser.GenericParser):
         self.skip_body = False
         self.pre_process_rows = False
         self.delimiter = ';'
+        self.total_line_count = 0
+        self.ten_percent_total_line_count = 1
 
     def check_header_only(self, do_only_header_check, skip_header_check=False, pre_process_rows=False, delimiter=';'):
         self.do_only_header_check = do_only_header_check
@@ -62,9 +64,11 @@ class GenericCSVParser(GenericParser.GenericParser):
                 for row in reader:
                     try:
                         self.pre_process_row(row)
+                        self.total_line_count = self.total_line_count + 1
                     except Exception as e:
                         print(sys.exc_info()[2])
                         print(traceback.format_exc())
+            self.ten_percent_total_line_count = int(self.total_line_count * 0.1)
 
     def pre_process_row(self, row):
         print("This should be overriden")
@@ -93,6 +97,14 @@ class GenericCSVParser(GenericParser.GenericParser):
                             if self.do_only_header_check or self.skip_body:
                                 return
                             self.process_row(row)
+                            if self.pre_process_file:
+                                if line_count % self.ten_percent_total_line_count == 0:
+                                    print("10% stats")
+                                    self.write_log_msg("10% stats")
+                                    print("Lines: " + str(line_count))
+                                    print("Errors: " + str(line_errors))
+                                    self.write_log_msg("Lines: " + str(line_count))
+                                    self.write_log_msg("Errors: " + str(line_errors))
                     except Exception as e:
                         print(sys.exc_info()[2])
                         print(traceback.format_exc())

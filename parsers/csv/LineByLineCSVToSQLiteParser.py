@@ -11,7 +11,7 @@ class LineByLineCSVToSQLiteParser(GenericCSVParser.GenericCSVParser):
         self.skip_header_check = True
         self.skip_body = False
         self.pre_process_rows = False
-        self.delimiter = ';'
+        self.delimiter = ','
         self.db = None
 
     def can_handle(self, filename):
@@ -36,5 +36,5 @@ class LineByLineCSVToSQLiteParser(GenericCSVParser.GenericCSVParser):
             self.dbname = self.table_name + '.db'
             self.db.init(self.dbname, self.output_dir)
             self.db.create_database()
-            self.db.create_table(self.table_name, self.column_names)
+            self.db.create_table(self.table_name, self.column_names.values())
         self.db.create_record(self.table_name, self.column_names.values(), row)

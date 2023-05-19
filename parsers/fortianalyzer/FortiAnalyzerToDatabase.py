@@ -1,5 +1,6 @@
 from parsers import GenericCSVParser
 from database.DatabaseHelper import DatabaseHelper
+from database.CSVDatabase import CSVDatabase
 import os
 
 
@@ -19,6 +20,9 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
         self.missed_columns = []
         self.multiple_names_same_column = {}
         self.unique_column_names = []
+        self.no_database = True
+        self.alternative_out_csv = None
+
 
     def can_handle(self, filename):
         if filename.strip().lower().endswith('.csv'):
@@ -56,10 +60,15 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
         print(self.multiple_names_same_column)
         print("Unique Column names: ")
         print(self.unique_column_names)
+        self.alternative_out_csv = CSVDatabase("fortianalyzer-csv", self.output_dir)
         if self.use_unique_names:
             self.db.create_table(self.table_name, self.unique_column_names)
+            self.alternative_out_csv.create_csv(self.unique_column_names)
         else:
             self.db.create_table(self.table_name, self.column_names.values())
+            self.alternative_out_csv.create_csv(self.column_names.values())
+        self.row_num = 0
+
 
 
     def normalize_columns_without_names(self):
@@ -122,10 +131,16 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
             else:
                 value = column
             data_with_empty.append(value)
-        if self.use_unique_names:
-            self.db.create_record(self.table_name, columns, data)
+        if self.no_database:
+            if self.use_unique_names:
+                self.alternative_out_csv.csv_write_named_values(columns, data)
+            else:
+                self.db.create_record(self.table_name, self.column_names.values(), data_with_empty)
         else:
-            self.db.create_record(self.table_name, self.column_names.values(), data_with_empty)
+            if self.use_unique_names:
+                self.db.create_record(self.table_name, columns, data)
+            else:
+                self.db.create_record(self.table_name, self.column_names.values(), data_with_empty)
 
     def process(self, filepath):
         self.column_names = {}

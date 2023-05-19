@@ -26,7 +26,7 @@ class DatabaseHelper:
         for column in columns:
             if qtd_columns > 0:
                 columns_spec = columns_spec + ', '
-            columns_spec = columns_spec + column + ' TEXT'
+            columns_spec = columns_spec + str(column) + ' TEXT'
             qtd_columns = qtd_columns + 1
         sql = 'create table if not exists ' + table_name + ' (internal_id INTEGER PRIMARY KEY,' + columns_spec + ')'
         print(sql)

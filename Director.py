@@ -85,7 +85,7 @@ class Director:
         self.range_end = None
         #self.parsers.append(ipedBR)
         self.parsers.append(fortianalyzer)
-        #self.parsers.append(lineByLineCSVToSQLiteParser)
+        self.parsers.append(lineByLineCSVToSQLiteParser)
 
 
     def configure_winevt_parsers(self):

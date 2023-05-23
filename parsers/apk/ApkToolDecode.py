@@ -23,6 +23,8 @@ class ApkToolDecode(GenericParser.GenericParser):
         print(result.stderr)
 
     def process(self, filepath):
-        basename = os.path.basename(filepath)
-        outfile = self.output_dir+"apktool-decoded-"+basename
-        self.run_subprocess(filepath, outfile)
+        lwr_filepath = filepath.lower()
+        if "apktool" in lwr_filepath:
+            basename = os.path.basename(filepath)
+            outfile = self.output_dir+"apktool-decoded-"+basename
+            self.run_subprocess(filepath, outfile)

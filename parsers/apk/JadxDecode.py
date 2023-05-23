@@ -22,6 +22,8 @@ class JadxDecode(GenericParser.GenericParser):
         print("jadx-end-"+apk_file)
 
     def process(self, filepath):
-        basename = os.path.basename(filepath)
-        outfile = self.output_dir+"jadx-decoded-"+basename
-        self.run_subprocess(filepath, outfile)
+        lwr_filepath = filepath.lower()
+        if "jadx" in lwr_filepath:
+            basename = os.path.basename(filepath)
+            outfile = self.output_dir+"jadx-decoded-"+basename
+            self.run_subprocess(filepath, outfile)

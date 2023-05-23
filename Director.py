@@ -98,8 +98,8 @@ class Director:
         self.parsers.append(PowerShellParser())
 
     def configure_extra_parsers(self):
-        #self.parsers.append(ApkToolDecode())
-        #self.parsers.append(JadxDecode())
+        self.parsers.append(ApkToolDecode())
+        self.parsers.append(JadxDecode())
         self.parsers.append(CSVToSQLiteParser())
 
     def configure_enrichers(self):

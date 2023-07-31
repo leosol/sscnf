@@ -2,6 +2,7 @@ from pathlib import Path
 import subprocess
 import os
 import sqlite3
+import re
 
 
 class CSVToSQLite:
@@ -9,8 +10,9 @@ class CSVToSQLite:
         self.csv_file = None
         self.db_file = None
         self.column_names = []
+        self.csv_separator = None
 
-    def init(self, csv_file, db_file):
+    def init(self, csv_file, db_file, csv_separator=';'):
         if csv_file is None:
             self.csv_file = './csv-database.csv'
         else:
@@ -19,6 +21,7 @@ class CSVToSQLite:
             self.db_file = "./csv-database.db"
         else:
             self.db_file = db_file
+        self.csv_separator = csv_separator
 
     def create_table(self, csv_file, db_file, table_name):
         first_line = ""
@@ -26,11 +29,22 @@ class CSVToSQLite:
             first_line = f.readline()
         con = sqlite3.connect(db_file)
         cur = con.cursor()
-        first_line = first_line.replace(';',',')
-        sql = "CREATE TABLE IF NOT EXISTS "+table_name+" ("+first_line+")"
+        tokens = re.split('[,;]', first_line)
+        tokens = [re.sub(r'[ #/()-]', '_', token) for token in tokens]
+        result = []
+        unknown_count = 1
+        for item in tokens:
+            if len(item) == 0:
+                result.append(f"unknown_{unknown_count}")
+                unknown_count += 1
+            else:
+                result.append(item)
+
+        output_string = ','.join(result)
+        sql = "CREATE TABLE IF NOT EXISTS "+table_name+" ("+output_string+")"
         print(sql)
         cur.execute(sql)
-        self.column_names = first_line.split(',')
+        self.column_names = output_string.split(',')
         con.commit()
         con.close()
 
@@ -43,12 +57,21 @@ class CSVToSQLite:
         con.commit()
         con.close()
 
+    def import_csv_to_sqlite(self, csv_file, db_file_path, table_name, separator=',', skip_first_line=True):
+        skip_option = '.mode csv\n' if skip_first_line else ''
+        #sqlite3 -separator "," out\csv_to_db_DATA_Filtering_by_Users.db ".import in\\DATA_Filtering_by_Users.csv-to-raw-db DATA_Filtering_by_Users"
+        csv_file_path = str(csv_file).replace('\\', '\\\\')
+        command = f'sqlite3 -separator "{separator}" "{db_file_path}" "{skip_option}.import \'{csv_file_path}\' {table_name}"'
+        print(command)
+        result = subprocess.run(command, shell=True)
+        print("SubProcess result: " + str(result))
+
     def run_subprocess(self, db_name, csv_file, table_name):
         result = subprocess.run(['sqlite3',
                                  str(db_name),
                                  '-cmd',
-                                 '.mode csv .separator ;',
-                                 '.import --skip 1 ' + str(csv_file).replace('\\', '\\\\')
+                                 '.mode csv .separator '+self.csv_separator,
+                                 '.import ' + str(csv_file).replace('\\', '\\\\')
                                  + " "+table_name],
                                 capture_output=True)
         print("SubProcess result: "+str(result))
@@ -72,7 +95,8 @@ class CSVToSQLite:
             table_name = basename.replace(' ', '_').replace('.', '_')
             self.create_table(csv_file, self.db_file, table_name)
             print("Calling subprocess sqlite3 - did you install it?")
-            self.run_subprocess(db_name, csv_file, table_name)
+            self.import_csv_to_sqlite(csv_file, db_name, table_name, self.csv_separator, False)
+            #self.run_subprocess(db_name, csv_file, table_name)
             self.create_indexes(self.db_file, table_name)
 
 

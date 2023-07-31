@@ -5,6 +5,7 @@ from parsers.winevt.SecurityParser import SecurityParser
 from parsers.winevt.RDPCoreTS import RDPCoreTS
 from parsers.winevt.TSRDPClientParser import TSRDPClientParser
 from parsers.winevt.KasperskyEndpointParser import KasperskyEndpointParser
+from parsers.winevt.SymantecEndpointProtectionParser import SymantecEndpointProtectionParser
 from parsers.winevt.PowerShellParser import PowerShellParser
 from parsers.csv.IPEDBRFileListing import IPEDBRFileListing
 from parsers.csv.CSVToSQLiteParser import CSVToSQLiteParser
@@ -18,6 +19,7 @@ from parsers.phones.iTunesBackupOldParser import  iTunesBackupOldParser
 from datetime import datetime
 from parsers.apk.JadxDecode import JadxDecode
 from parsers.apk.ApkToolDecode import ApkToolDecode
+from safari.GarminFIT import GarminFIT
 import traceback
 import time
 import sys
@@ -95,12 +97,14 @@ class Director:
         self.parsers.append(RDPCoreTS())
         self.parsers.append(TSRDPClientParser())
         self.parsers.append(KasperskyEndpointParser())
+        self.parsers.append(SymantecEndpointProtectionParser())
         self.parsers.append(PowerShellParser())
 
     def configure_extra_parsers(self):
         self.parsers.append(ApkToolDecode())
         self.parsers.append(JadxDecode())
         self.parsers.append(CSVToSQLiteParser())
+        self.parsers.append(GarminFIT("garmin_locations.db", self.out_dir))
 
     def configure_enrichers(self):
         self.parsers.append(BssidEnricher())

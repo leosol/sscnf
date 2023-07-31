@@ -1,6 +1,8 @@
 import sqlite3
 import hashlib
-
+import traceback
+import time
+import sys
 
 class DatabaseHelper:
 
@@ -46,7 +48,13 @@ class DatabaseHelper:
             binding_spec = binding_spec + '?'
             qtd_columns = qtd_columns + 1
         sql = 'insert into ' + table_name + '(' + column_spec + ') values (' + binding_spec + ')'
-        self.c.execute(sql, data)
+        try:
+            self.c.execute(sql, data)
+        except Exception as e:
+            print(sql)
+            print(sys.exc_info()[2])
+            print(traceback.format_exc())
+            raise e
         self.conn.commit()
 
     def create_index(self, table_name, columns):

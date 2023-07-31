@@ -35,7 +35,9 @@ class VTUploader(GenericParser.GenericParser):
         self.perm_summary_writer.writerow(['file_name', 'package', 'permission_id', 'permission_desc', 'permission_type'])
 
     def can_handle(self, filename):
-        return True
+        lwr_filepath = (self.output_dir + filename).lower()
+        if "upload" in lwr_filepath and "virustotal" in lwr_filepath:
+            return True
 
     def process(self, filepath):
         lwr_filepath = filepath.lower()

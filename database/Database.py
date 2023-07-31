@@ -207,6 +207,21 @@ class Database:
               ' script_msg_total TEXT, ' \
               ' script_block_assembled TEXT )'
         self.c.execute(sql)
+        sql = 'create table if not exists symantec_endpoint_events (id INTEGER PRIMARY KEY, ' \
+              ' event_id TEXT, ' \
+              ' event_time_utc TEXT, ' \
+              ' event_summary TEXT, ' \
+              ' event_record_no TEXT, ' \
+              ' computer TEXT, ' \
+              ' provider TEXT, ' \
+              ' level TEXT, ' \
+              ' channel TEXT, ' \
+              ' security_user_id TEXT, ' \
+              ' event_data_0 TEXT, ' \
+              ' event_data_1 TEXT, ' \
+              ' event_data_2 TEXT, ' \
+              ' event_data_3 TEXT )'
+        self.c.execute(sql)
 
     def create_views(self):
         sql = """create view if not exists vw_summary_received_tcp_udp_connections
@@ -284,7 +299,9 @@ class Database:
                 ip_addr,
                 target_user_name as who_just_logged,
                 s_user_name as account_that_requested_logon,
-                count(*) as qtd
+                count(*) as qtd,
+				min(substr(event_time_utc, 12, 5)) as min_time,
+				max(substr(event_time_utc, 12, 5)) as max_time
             from windows_logon
             where target_user_name not in ('UMFD-0', 'UMFD-1', 'UMFD-2', 'UMFD-3', 'UMFD-4', 'UMFD-5', 'DWM-0', 'DWM-1', 'DWM-2', 'DWM-3', 'DWM-4', 'DWM-5')
             and ( target_domain_name not in ('AUTORIDADE NT') or target_domain_name not in ('NT AUTHORITY'))
@@ -300,6 +317,16 @@ class Database:
             from kaspersky_endpoint_events
             group by 1,2,3
             order by dt_event desc"""
+        self.c.execute(sql)
+        sql = """create view if not exists vw_summary_symantec_endpoint_events as
+                    select 
+                        substr(event_time_utc, 0, 11) as dt_event,
+                        event_summary, 
+                        computer, 
+                        count(*) as qtd
+                    from symantec_endpoint_events
+                    group by 1,2,3
+                    order by dt_event desc"""
         self.c.execute(sql)
         sql = """create view if not exists vw_summary_powershell_web_access
                 as
@@ -488,44 +515,57 @@ class Database:
                 create index if not exists kee_threat_param_19 on kaspersky_endpoint_events(threat_param_19);"""
         for sql_item in sql.replace("\n", "").split(";"):
             self.c.execute(sql_item)
-            sql = """create index if not exists pssl_idx_event_id on power_shell_script_logging(event_id);
-                        create index if not exists pssl_idx_event_time_utc on power_shell_script_logging(event_time_utc);
-                        create index if not exists pssl_idx_event_summary on power_shell_script_logging(event_summary);
-                        create index if not exists pssl_idx_computer on power_shell_script_logging(computer);
-                        create index if not exists pssl_idx_process_id on power_shell_script_logging(process_id);
-                        create index if not exists pssl_idx_thread_id on power_shell_script_logging(thread_id);
-                        create index if not exists pssl_idx_provider on power_shell_script_logging(provider);
-                        create index if not exists pssl_idxchannel on power_shell_script_logging(channel);
-                        create index if not exists pssl_idxsecurity_user_id on power_shell_script_logging(security_user_id);
-                        create index if not exists pssl_idxevent_data_0 on power_shell_script_logging(event_data_0);
-                        create index if not exists pssl_idxevent_data_1 on power_shell_script_logging(event_data_1);
-                        create index if not exists pssl_idxevent_data_2 on power_shell_script_logging(event_data_2);
-                        create index if not exists pssl_idxevent_data_3 on power_shell_script_logging(event_data_3);
-                        create index if not exists pssl_idxevent_data_4 on power_shell_script_logging(event_data_4);
-        				create index if not exists pssl_idxevent_data_5 on power_shell_script_logging(event_data_5);
-                        create index if not exists pssl_idxevent_data_6 on power_shell_script_logging(event_data_6);
-                        create index if not exists pssl_idxevent_data_7 on power_shell_script_logging(event_data_7);
-                        create index if not exists pssl_idxevent_data_8 on power_shell_script_logging(event_data_8);
-                        create index if not exists pssl_idxevent_data_9 on power_shell_script_logging(event_data_9);
-        				create index if not exists pssl_idxevent_data_10 on power_shell_script_logging(event_data_10);
-                        create index if not exists pssl_idxevent_data_11 on power_shell_script_logging(event_data_11);
-                        create index if not exists pssl_idxevent_data_12 on power_shell_script_logging(event_data_12);
-                        create index if not exists pssl_idxevent_data_13 on power_shell_script_logging(event_data_13);
-                        create index if not exists pssl_idxevent_data_14 on power_shell_script_logging(event_data_14);
-        				create index if not exists pssl_idxevent_data_15 on power_shell_script_logging(event_data_15);
-                        create index if not exists pssl_idxevent_data_16 on power_shell_script_logging(event_data_16);
-                        create index if not exists pssl_idxevent_data_17 on power_shell_script_logging(event_data_17);
-                        create index if not exists pssl_idxevent_data_18 on power_shell_script_logging(event_data_18);
-                        create index if not exists pssl_idxevent_data_19 on power_shell_script_logging(event_data_19);
-                        create index if not exists pssl_idx_script_block_id on power_shell_script_logging(script_block_id);
-                        create index if not exists pssl_idx_script_block_text on power_shell_script_logging(script_block_text);
-                        create index if not exists pssl_idx_script_msg_number on power_shell_script_logging(script_msg_number);
-                        create index if not exists pssl_idx_script_msg_total on power_shell_script_logging(script_msg_total);
-                        create index if not exists pssl_idx_script_path on power_shell_script_logging(script_path);
-                        create index if not exists pssl_idx_script_session_id on power_shell_script_logging(script_session_id);
-                        create index if not exists pssl_idx_possible_command_in_str on power_shell_script_logging(possible_command_in_str);"""
-            for sql_item in sql.replace("\n", "").split(";"):
-                self.c.execute(sql_item)
+        sql = """create index if not exists kee_idx_event_id on symantec_endpoint_events(event_id);
+                        create index if not exists kee_idx_event_time_utc on symantec_endpoint_events(event_time_utc);
+                        create index if not exists kee_idx_event_summary on symantec_endpoint_events(event_summary);
+                        create index if not exists kee_idx_computer on symantec_endpoint_events(computer);
+                        create index if not exists kee_idx_provider on symantec_endpoint_events(provider);
+                        create index if not exists kee_channel on symantec_endpoint_events(channel);
+                        create index if not exists kee_security_user_id on symantec_endpoint_events(security_user_id);
+                        create index if not exists kee_event_data_0 on symantec_endpoint_events(event_data_0);
+                        create index if not exists kee_event_data_1 on symantec_endpoint_events(event_data_1);
+                        create index if not exists kee_event_data_2 on symantec_endpoint_events(event_data_2);
+                        create index if not exists kee_event_data_3 on symantec_endpoint_events(event_data_3);"""
+        for sql_item in sql.replace("\n", "").split(";"):
+            self.c.execute(sql_item)
+        sql = """create index if not exists pssl_idx_event_id on power_shell_script_logging(event_id);
+                    create index if not exists pssl_idx_event_time_utc on power_shell_script_logging(event_time_utc);
+                    create index if not exists pssl_idx_event_summary on power_shell_script_logging(event_summary);
+                    create index if not exists pssl_idx_computer on power_shell_script_logging(computer);
+                    create index if not exists pssl_idx_process_id on power_shell_script_logging(process_id);
+                    create index if not exists pssl_idx_thread_id on power_shell_script_logging(thread_id);
+                    create index if not exists pssl_idx_provider on power_shell_script_logging(provider);
+                    create index if not exists pssl_idxchannel on power_shell_script_logging(channel);
+                    create index if not exists pssl_idxsecurity_user_id on power_shell_script_logging(security_user_id);
+                    create index if not exists pssl_idxevent_data_0 on power_shell_script_logging(event_data_0);
+                    create index if not exists pssl_idxevent_data_1 on power_shell_script_logging(event_data_1);
+                    create index if not exists pssl_idxevent_data_2 on power_shell_script_logging(event_data_2);
+                    create index if not exists pssl_idxevent_data_3 on power_shell_script_logging(event_data_3);
+                    create index if not exists pssl_idxevent_data_4 on power_shell_script_logging(event_data_4);
+                    create index if not exists pssl_idxevent_data_5 on power_shell_script_logging(event_data_5);
+                    create index if not exists pssl_idxevent_data_6 on power_shell_script_logging(event_data_6);
+                    create index if not exists pssl_idxevent_data_7 on power_shell_script_logging(event_data_7);
+                    create index if not exists pssl_idxevent_data_8 on power_shell_script_logging(event_data_8);
+                    create index if not exists pssl_idxevent_data_9 on power_shell_script_logging(event_data_9);
+                    create index if not exists pssl_idxevent_data_10 on power_shell_script_logging(event_data_10);
+                    create index if not exists pssl_idxevent_data_11 on power_shell_script_logging(event_data_11);
+                    create index if not exists pssl_idxevent_data_12 on power_shell_script_logging(event_data_12);
+                    create index if not exists pssl_idxevent_data_13 on power_shell_script_logging(event_data_13);
+                    create index if not exists pssl_idxevent_data_14 on power_shell_script_logging(event_data_14);
+                    create index if not exists pssl_idxevent_data_15 on power_shell_script_logging(event_data_15);
+                    create index if not exists pssl_idxevent_data_16 on power_shell_script_logging(event_data_16);
+                    create index if not exists pssl_idxevent_data_17 on power_shell_script_logging(event_data_17);
+                    create index if not exists pssl_idxevent_data_18 on power_shell_script_logging(event_data_18);
+                    create index if not exists pssl_idxevent_data_19 on power_shell_script_logging(event_data_19);
+                    create index if not exists pssl_idx_script_block_id on power_shell_script_logging(script_block_id);
+                    create index if not exists pssl_idx_script_block_text on power_shell_script_logging(script_block_text);
+                    create index if not exists pssl_idx_script_msg_number on power_shell_script_logging(script_msg_number);
+                    create index if not exists pssl_idx_script_msg_total on power_shell_script_logging(script_msg_total);
+                    create index if not exists pssl_idx_script_path on power_shell_script_logging(script_path);
+                    create index if not exists pssl_idx_script_session_id on power_shell_script_logging(script_session_id);
+                    create index if not exists pssl_idx_possible_command_in_str on power_shell_script_logging(possible_command_in_str);"""
+        for sql_item in sql.replace("\n", "").split(";"):
+            self.c.execute(sql_item)
 
     def create_derived_tables(self):
         print("creating derived tables...")
@@ -941,6 +981,43 @@ class Database:
         self.c.execute(sql)
         self.conn.commit()
 
+    def insert_symantec_endpoint_events(self, insert_dict):
+        sql = "insert into symantec_endpoint_events (" \
+                " event_id," \
+                " event_time_utc, " \
+                " event_summary, " \
+                " event_record_no," \
+                " computer," \
+                " provider," \
+                " level," \
+                " channel," \
+                " security_user_id," \
+                " event_data_0," \
+                " event_data_1," \
+                " event_data_2," \
+                " event_data_3) " \
+              "values ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', " \
+              "'%s', '%s', '%s' ) "\
+              " " % (
+                  insert_dict["event_id"],
+                  insert_dict["event_time_utc"],
+                  insert_dict["event_summary"],
+                  insert_dict["event_record_no"],
+                  insert_dict["computer"],
+                  insert_dict["provider"],
+                  insert_dict["level"],
+                  insert_dict["channel"],
+                  insert_dict["security_user_id"],
+                  insert_dict["event_data_0"],
+                  insert_dict["event_data_1"],
+                  insert_dict["event_data_2"],
+                  insert_dict["event_data_3"],
+              )
+        print(sql)
+        print(sql)
+        print(sql)
+        self.c.execute(sql)
+        self.conn.commit()
 
 if __name__ == '__main__':
     db = Database()

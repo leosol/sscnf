@@ -2,6 +2,7 @@ from parsers import GenericCSVParser
 from database.DatabaseHelper import DatabaseHelper
 from database.CSVDatabase import CSVDatabase
 import os
+import sys
 
 
 class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
@@ -13,18 +14,28 @@ class FortiAnalyzerToDatabase(GenericCSVParser.GenericCSVParser):
         self.pre_process_rows = True
         self.use_unique_names = True
         self.skip_body = False
-        self.delimiter = ','
+        self.delimiter = ' '
         self.column_names = {}
         self.db.create_database()
         self.lost_columns = []
         self.missed_columns = []
         self.multiple_names_same_column = {}
         self.unique_column_names = []
-        self.no_database = True
+        self.no_database = False
         self.alternative_out_csv = None
+        self.disabled = True
+        print("FortiAnalyzerToDatabase: enable? (enter True)")
+        if True:
+            for line in sys.stdin:
+                helper = line.rstrip()
+                if "True" in helper:
+                    self.disabled = False
+                break
 
 
     def can_handle(self, filename):
+        if self.disabled:
+            return False
         if filename.strip().lower().endswith('.csv'):
             return True
         return False

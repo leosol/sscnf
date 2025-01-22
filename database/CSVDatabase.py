@@ -8,7 +8,7 @@ class CSVDatabase:
         self.csv_writer = None
         self.out_dir = "."
         self.first_row = None
-
+        self.delimiter = ','
     def init(self, csv_name, out_dir):
         if csv_name is None:
             self.csv_name = 'csv-database.csv'
@@ -19,14 +19,15 @@ class CSVDatabase:
         else:
             self.out_dir = out_dir
 
-
     def close(self):
-        self.csv_writer.close()
-        self.csv_file.close()
+        if self.csv_writer is not None:
+            self.csv_writer.close()
+        if self.csv_file is not None:
+            self.csv_file.close()
 
     def create_csv(self, first_line):
         self.csv_file = open(self.out_dir+"\\"+self.csv_name, mode='w', newline='', encoding='utf-8')
-        self.csv_writer = csv.writer(self.csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        self.csv_writer = csv.writer(self.csv_file, delimiter=self.delimiter, quotechar='"', quoting=csv.QUOTE_MINIMAL)
         self.csv_writer.writerow(first_line)
         self.first_row = first_line
 

@@ -9,18 +9,21 @@ from pprint import pprint
 import traceback
 import time
 import sys
+import time
+
 
 
 
 class VTUploader(GenericParser.GenericParser):
     def __init__(self, output_dir):
-        print("VTUploader: Enter your VT API Key")
+        print("VTUploader: Enter your VT API Keys (comma separated)")
         if True:
             for line in sys.stdin:
-                self.api_key = line.rstrip()
+                self.api_keys = line.rstrip().split(',')
                 break
-        print("Key: "+self.api_key+":")
+        print("Key: "+str(self.api_keys)+":")
         self.output_dir = output_dir
+        self.key_position = 0
         self.expected_file = open(self.output_dir + "virustotal-expected.csv", mode='w', newline='', encoding='utf-8')
         self.expected_writer = csv.writer(self.expected_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         self.expected_writer.writerow(['file_name'])
@@ -41,8 +44,9 @@ class VTUploader(GenericParser.GenericParser):
 
     def process(self, filepath):
         lwr_filepath = filepath.lower()
+
         if "upload" in lwr_filepath and "virustotal" in lwr_filepath:
-            with virustotal_python.Virustotal(self.api_key) as vtotal:
+            with virustotal_python.Virustotal(self.api_keys[self.key_position]) as vtotal:
                 basename = os.path.basename(filepath)
                 file_name = basename
                 self.expected_writer.writerow([file_name])
@@ -117,5 +121,10 @@ class VTUploader(GenericParser.GenericParser):
                         permission_type = json_resp['data']['attributes']['androguard']['permission_details'][permission_id]['permission_type']
                         self.perm_summary_writer.writerow([file_name, package, permission_id, full_description, permission_type])
                 self.completed_writer.writerow([file_name])
-
+                self.key_position = self.key_position + 1
+                if self.key_position >= len(self.api_keys):
+                    self.key_position = 0
+                sleep_time = 60.0/(3.0*len(self.api_keys))
+                print("Sleeping for {:.2f} seconds".format(sleep_time))
+                time.sleep(sleep_time)
 

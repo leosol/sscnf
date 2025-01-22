@@ -20,6 +20,7 @@ from datetime import datetime
 from parsers.apk.JadxDecode import JadxDecode
 from parsers.apk.ApkToolDecode import ApkToolDecode
 from safari.GarminFIT import GarminFIT
+from parsers.csv.CsvToCsvCleaner import CsvToCsvCleaner
 import traceback
 import time
 import sys
@@ -88,6 +89,7 @@ class Director:
         #self.parsers.append(ipedBR)
         self.parsers.append(fortianalyzer)
         self.parsers.append(lineByLineCSVToSQLiteParser)
+        self.parsers.append(CsvToCsvCleaner())
 
 
     def configure_winevt_parsers(self):
